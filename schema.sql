@@ -9,8 +9,6 @@ DROP TABLE IF EXISTS formats;
 CREATE TABLE books (
     book_id INTEGER PRIMARY KEY,
     title TEXT,
-    copyright INTEGER, -- BOOL
-    media_type TEXT,
     download_count INTEGER,
     author_ids TEXT,    -- Maybe do this as CSV? 
     translator_ids TEXT,
