@@ -1,7 +1,7 @@
 import sqlite3
 from flask import g
 
-DATABASE = 'books.sqlite'
+DATABASE = 'books_v2.sqlite'
 
 def get_db():
     db = getattr(g, '_database', None)

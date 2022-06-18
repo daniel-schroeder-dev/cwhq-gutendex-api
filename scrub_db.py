@@ -1,6 +1,6 @@
 import sqlite3
 
-DATABASE = 'books.sqlite'
+DATABASE = 'books_v2.sqlite'
 
 con = sqlite3.connect(DATABASE)
 con.row_factory = sqlite3.Row
