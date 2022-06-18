@@ -2,7 +2,7 @@ from pathlib import Path
 from json import dumps
 import sqlite3
 
-con = sqlite3.connect("books.sqlite")
+con = sqlite3.connect("books_v2.sqlite")
 cur = con.cursor()
 
 
@@ -32,6 +32,8 @@ def insert_authors(book_data):
         """
         row = cur.execute(query, [author_name]).fetchone()
         if row is not None:
+            author_id, *_ = row
+            author_ids.append(str(author_id))
             continue
 
         query = """
@@ -67,6 +69,8 @@ def insert_translators(book_data):
         """
         row = cur.execute(query, [translator_name]).fetchone()
         if row is not None:
+            translator_id, *_ = row
+            translator_ids.append(str(translator_id))
             continue
 
         query = """
@@ -96,6 +100,8 @@ def insert_subjects(book_data):
         """
         row = cur.execute(query, [subject]).fetchone()
         if row is not None:
+            subject_id, _ = row
+            subject_ids.append(str(subject_id))
             continue
 
         query = """
@@ -170,11 +176,12 @@ counter = 0
 
 for path in gutendex_path.iterdir():
     counter += 1
-    print(counter)
+    if counter % 100 == 0:
+        print(counter)
     # if counter >= 100:
     #     break
     if path.is_dir() and path.stem.isdigit():
-        # if path.is_dir() and path.stem == "29019" or path.stem == "2610":
+    # if path.is_dir() and path.stem == "4029" or path.stem == "16688":
         book_data = {}
         book_data["id"] = int(path.stem)
         book_data["authors"] = []
@@ -331,4 +338,5 @@ for path in gutendex_path.iterdir():
             translator_ids = insert_translators(book_data)
             subject_ids = insert_subjects(book_data)
             format_ids = insert_formats(book_data)
+            # print(author_ids, translator_ids, subject_ids, format_ids)
             insert_book(book_data, author_ids, translator_ids, subject_ids, format_ids)
