@@ -1,8 +1,8 @@
 from pathlib import Path
-from json import dumps
+from json import dump
 import sqlite3
 
-con = sqlite3.connect("books_v2.sqlite")
+con = sqlite3.connect("books_scrub.sqlite")
 cur = con.cursor()
 
 
@@ -173,21 +173,21 @@ def insert_book(book_data, author_ids, translator_ids, subject_ids, format_ids):
 gutendex_path = Path("../gutendex/cache/epub")
 
 counter = 0
-
+json_data = []
 for path in gutendex_path.iterdir():
     counter += 1
     if counter % 100 == 0:
         print(counter)
-    # if counter >= 100:
-    #     break
     if path.is_dir() and path.stem.isdigit():
-    # if path.is_dir() and path.stem == "4029" or path.stem == "16688":
+    # if path.is_dir() and path.stem == "60976":
         book_data = {}
         book_data["id"] = int(path.stem)
+        book_data["title"] = ""
         book_data["authors"] = []
         book_data["translators"] = []
         book_data["subjects"] = []
         book_data["formats"] = {}
+        book_data["download_count"] = None
 
         format_url = None
 
@@ -211,7 +211,11 @@ for path in gutendex_path.iterdir():
 
                 # Authors toggle
                 if "<dcterms:creator>" in line:
-                    author_data = {}
+                    author_data = {
+                        "name": None,
+                        "birth_year": None,
+                        "death_year": None,
+                    }
                     adding_authors = True
 
                 if "</dcterms:creator>" in line:
@@ -251,7 +255,11 @@ for path in gutendex_path.iterdir():
 
                 # Translators toggle
                 if "<marcrel:trl>" in line:
-                    translator_data = {}
+                    translator_data = {
+                        "name": None,
+                        "birth_year": None,
+                        "death_year": None,
+                    }
                     adding_translators = True
 
                 if "</marcrel:trl>" in line:
@@ -334,9 +342,15 @@ for path in gutendex_path.iterdir():
                     book_data["formats"][format_type] = format_url
 
             # print(dumps(book_data, indent=4))
-            author_ids = insert_authors(book_data)
-            translator_ids = insert_translators(book_data)
-            subject_ids = insert_subjects(book_data)
-            format_ids = insert_formats(book_data)
+            json_data.append(book_data)
+            # author_ids = insert_authors(book_data)
+            # translator_ids = insert_translators(book_data)
+            # subject_ids = insert_subjects(book_data)
+            # format_ids = insert_formats(book_data)
             # print(author_ids, translator_ids, subject_ids, format_ids)
-            insert_book(book_data, author_ids, translator_ids, subject_ids, format_ids)
+            # insert_book(book_data, author_ids, translator_ids, subject_ids, format_ids)
+
+
+with open("books.json", mode="wt", encoding="utf-8") as json_file:
+    dump(json_data, json_file)
+

@@ -9,7 +9,7 @@ def _query_db(query, args=(), one=False):
     cur = get_db().execute(query, args)
     rv = cur.fetchall()
     cur.close()
-    return (rv[0] if rv else None) if one else [dict(r) for r in rv]
+    return (dict(rv[0]) if rv else None) if one else [dict(r) for r in rv]
 
 
 def search_books(search_term):
@@ -60,24 +60,38 @@ def search_books(search_term):
     
     book_data = title_results + final_results
 
-    final_book_data = {
-        "count": len(book_data),
-        "results": [],
-    }
+    # final_book_data = {
+    #     "count": len(book_data),
+    #     "results": [],
+    # }
+    # for book in book_data:
+    #     print(book["format_ids"])
+    #     d = {}
+    #     d["id"] = book["book_id"]
+    #     d["title"] = book["title"]
+    #     d["authors"] = []
+    #     d["author_ids"] = [book["author_ids"]]
+    #     d["translators"] = [book["translator_ids"]]
+    #     d["subjects"] = [book["subject_ids"].split(",")]
+    #     d["formats"] = {format_id: "" for format_id in book["format_ids"].split(",")}
+    #     d["download_count"] = book["download_count"]
+    #     final_book_data["results"].append(d)
+
     for book in book_data:
-        print(book["format_ids"])
-        d = {}
-        d["id"] = book["book_id"]
-        d["title"] = book["title"]
-        d["authors"] = [book["author_ids"]]
-        d["translators"] = [book["translator_ids"]]
-        d["subjects"] = [book["subject_ids"].split(",")]
-        d["formats"] = {format_id: "" for format_id in book["format_ids"].split(",")}
-        d["download_count"] = book["download_count"]
-        final_book_data["results"].append(d)
+        book["authors"] = []
+        for author_id in book["author_ids"]:
+            query = """
+                SELECT * FROM authors WHERE author_id = ?;
+            """
+            author = _query_db(query, args=[author_id], one=True)
+            if author is not None:
+                book["authors"].append({
+                    "name": author["author_name"],
+                    "birth_year": author["birth_year"],
+                    "death_year": author["death_year"],
+                })
+        del book["author_ids"]
 
-    # print(dumps(final_book_data, indent=4))
-
-    return final_book_data
+    return book_data
 
     
